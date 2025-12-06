@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado del Reconocimiento Facial</title>
+</head>
+<body>
+    <h1>Resultado del Reconocimiento Facial</h1>
+    
+    <form id="image-form" enctype="multipart/form-data">
+        <input type="file" name="imagen" id="imagen" accept="image/*" required>
+        <button type="submit">Procesar Imagen</button>
+    </form>
+    
+    <h2>Imagen procesada:</h2>
+    <img id="result-image" src="" alt="Imagen procesada" />
+    
+    <script>
+        const form = document.getElementById("image-form");
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch("/procesar_imagen", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.image) {
+                const imageElement = document.getElementById("result-image");
+                imageElement.src = `data:image/jpeg;base64,${data.image}`;  // Mostrar imagen usando base64
+            }
+        });
+    </script>
+</body>
+</html>
