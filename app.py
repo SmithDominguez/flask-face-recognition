@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import urllib.request
 import face_recognition
+import base64
 
 app = Flask(__name__)
 
@@ -76,9 +77,11 @@ def procesar_imagen():
         cv2.putText(imagen_prueba, nombre_detectado, (left, top - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-    # Convertir imagen procesada a formato que pueda ser retornado
+    # Convertir imagen procesada a formato base64
     _, img_encoded = cv2.imencode('.jpg', imagen_prueba)
-    return jsonify({"message": "Imagen procesada", "image": img_encoded.tostring().decode('latin1')}), 200
+    img_base64 = base64.b64encode(img_encoded).decode('utf-8')
+
+    return jsonify({"message": "Imagen procesada", "image": img_base64}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
