@@ -1,11 +1,9 @@
-from flask import Flask, request, render_template, jsonify
+import gradio as gr
 import cv2
 import numpy as np
 import urllib.request
 import face_recognition
 import base64
-
-app = Flask(__name__)
 
 # ---------- CONFIGURACIÓN ----------
 URLS_CELEBRIDADES = {
@@ -45,19 +43,13 @@ def cargar_celebridades():
             print(f"[ERROR] No se pudo procesar {nombre}: {e}")
     return nombres, embeddings
 
-@app.route('/')
-def index():
-    return render_template('index.html')  # El frontend que crearemos luego
-
-@app.route('/procesar_imagen', methods=['POST'])
-def procesar_imagen():
+def procesar_imagen(file):
     print("[INFO] Cargando dataset de la nube...")
     nombres_conocidos, embeddings_conocidos = cargar_celebridades()
     if not nombres_conocidos:
-        return jsonify({"error": "No se cargaron celebridades correctamente."}), 400
+        return "No se cargaron celebridades correctamente.", None
 
     # Obtener imagen del POST
-    file = request.files['imagen']
     img_array = np.frombuffer(file.read(), np.uint8)
     imagen_prueba = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     rgb_prueba = cv2.cvtColor(imagen_prueba, cv2.COLOR_BGR2RGB)
@@ -81,7 +73,16 @@ def procesar_imagen():
     _, img_encoded = cv2.imencode('.jpg', imagen_prueba)
     img_base64 = base64.b64encode(img_encoded).decode('utf-8')
 
-    return jsonify({"message": "Imagen procesada", "image": img_base64}), 200
+    return "Imagen procesada correctamente", img_base64
+
+def run_gradio_interface():
+    interface = gr.Interface(
+        fn=procesar_imagen,
+        inputs=gr.inputs.Image(type="file"),
+        outputs=[gr.outputs.Textbox(), gr.outputs.Image(type="auto")],
+        live=True
+    )
+    interface.launch()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    run_gradio_interface()
